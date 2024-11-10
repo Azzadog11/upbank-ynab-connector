@@ -29,8 +29,6 @@ def fetch_up_transactions(token):
         print(f"Error fetching transactions from Up Bank: {e}")
         return None
 
-
-
 def transform_to_ynab(up_transaction, ynab_account_id):
     """
     Transforms an Up Bank transaction to the YNAB format.
@@ -55,10 +53,11 @@ def transform_to_ynab(up_transaction, ynab_account_id):
     }
     return ynab_transaction
 
-
 def add_to_ynab(ynab_token, budget_id, transactions):
     """Adds transactions to YNAB."""
-    headers = {"Authorization": f"Bearer {ynab_token}"}
+    headers = {"Authorization": f"Bearer {ynab_token}",
+               "Content-Type": "application/json",
+               "accept": "application/json"}
     data = {"transactions": transactions}
     response = requests.post(
         f"https://api.ynab.com/api/v1/budgets/{budget_id}/transactions",
@@ -74,12 +73,13 @@ if __name__ == "__main__":
     up_token = os.getenv("UP_API_TOKEN")
     ynab_token = os.getenv("YNAB_API_TOKEN")  # Get your YNAB API token
     budget_id = os.getenv("YNAB_BUDGET_ID")  # Replace with your YNAB budget ID
+    ynab_account_id = os.getenv("YNAB_ACCOUNT_ID")
     if not up_token or not ynab_token or not budget_id:
         print("Environment variables not set.")
     else:
         transactions = fetch_up_transactions(up_token)
         if transactions:
-            ynab_account_id = "YNAB_ACCOUNT_ID"  # Replace with your actual YNAB account ID
+            ynab_account_id =   ynab_account_id
 
             for up_transaction in transactions:
                 ynab_transaction = transform_to_ynab(up_transaction, ynab_account_id)
