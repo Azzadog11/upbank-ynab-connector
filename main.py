@@ -1,6 +1,7 @@
 import os
 import requests
 import datetime
+import pprint
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -109,8 +110,5 @@ if __name__ == "__main__":
             if settled_transactions:
                 ynab_response = add_to_ynab(ynab_token, budget_id,
                                             settled_transactions)
-                print(
-                    ynab_response
-                )  # Check the response from the YNAB API
-
+                pprint.pprint(ynab_response)
 input()
