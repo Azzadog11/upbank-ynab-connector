@@ -101,7 +101,7 @@ if __name__ == "__main__":
             # Collect all settled transactions first
             settled_transactions = []
             for up_transaction in transactions:
-                if up_transaction['attributes']['status'] == "SETTLED":
+                if up_transaction['attributes']['status'] == "SETTLED" and (up_transaction['relationships'].get('transferAccount').get('data'))==None:
                     ynab_transaction = transform_to_ynab(
                         up_transaction, ynab_account_id)
                     settled_transactions.append(ynab_transaction)
