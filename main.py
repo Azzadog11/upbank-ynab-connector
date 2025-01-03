@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-# Fetches transactions from the past two weeks in json format
+# Fetches transactions from a given period in json format
 def fetch_up_transactions(token):
     """
     Fetches transactions from the Up Bank API of last two weeks
@@ -23,12 +23,32 @@ def fetch_up_transactions(token):
         headers = {
             "Authorization": f"Bearer {token}"
         }
-        two_weeks_ago = (datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=10))).replace(microsecond=0) - datetime.timedelta(weeks=2)).isoformat() #Set to AEST
-        response = requests.get(url=url, 
-                                headers=headers, 
-                                params={"filter[since]": two_weeks_ago})
-        response.raise_for_status()  # Raise an exception for bad status codes (4xx or 5xx)
-        return response.json()['data']  # Extract transaction data from the response
+        # Calculate the start and end dates for the four-week period
+        end_date = datetime.datetime.now(datetime.timezone.utc)  # Use UTC for consistency
+        start_date = end_date - datetime.timedelta(weeks=4)
+        print(f"Start date: {start_date.isoformat()}")
+        print(f"End Date: {end_date.isoformat()}")
+        # Retrieve transactions within the two-week period using both filter[since] and filter[until]
+        response = requests.get(
+            url=url,
+            headers=headers,
+            params={
+                "filter[since]": start_date.isoformat(),
+                "filter[until]": end_date.isoformat()
+            }
+        )
+
+        response.raise_for_status()
+        transactions = response.json()['data']
+
+        # Handle pagination if there are more transactions
+        while response.json()['links'].get('next'):
+            next_page_url = response.json()['links']['next']
+            response = requests.get(url=next_page_url, headers=headers)
+            response.raise_for_status()
+            transactions.extend(response.json()['data'])
+
+        return transactions
 
     except requests.exceptions.RequestException as e:
         print(f"Error fetching transactions from Up Bank: {e}")
@@ -111,4 +131,4 @@ if __name__ == "__main__":
                 ynab_response = add_to_ynab(ynab_token, budget_id,
                                             settled_transactions)
                 pprint.pprint(ynab_response)
-input()
+input("Press any button to exit....")
